@@ -1,6 +1,7 @@
 import fs from "fs";
 import { spawn,exec } from "child_process";
 import path from "path";
+import { stdout } from "process";
 
 
 const SANDBOX_PATH = path.join(process.cwd(), "sandbox");
@@ -38,59 +39,25 @@ export function compileCpp() {
 }
 
 
-// async function test() {
-//     await saveCodeToFile(`
-//         #include <iostream>
-//         using namespace std;
-//         int main(){
-//             cout << "Hello test";
-//             return 0;
-//         }
-//     `);
-
-//     const result = await compileCpp();
-//     console.log(result);
-// }
-
-// test();  // bật khi muốn kiểm tra
-
-
-export function runCpp(input, timeout = 2000) {
+export function runCpp(input, timeLimit , memoryLimit ) {
     return new Promise((resolve) => {
-        const cmd = path.join(SANDBOX_PATH, "Main.exe");
-        const child=spawn(cmd);
+        const exePath = path.join(SANDBOX_PATH, "Main.exe");
+        //const child=spawn(cmd);
+
+        // Giới hạn bộ nhớ bằng --max-old-space-size (MB)
+        const child = spawn(exePath, {
+            env: {
+                ...process.env,
+                NODE_OPTIONS: `--max-old-space-size=${memoryLimit}`
+            }
+        });
 
 
-        // const process = exec(cmd, { timeout }, (error, stdout, stderr) => {
-        //     if (error) {
-        //         if (error.killed) {
-        //             return resolve({
-        //                 success: false,
-        //                 error: "Time Limit Exceeded"
-        //             });
-        //         }
-
-        //         return resolve({
-        //             success: false,
-        //             error: stderr || error.message
-        //         });
-        //     }
-
-        //     resolve({
-        //         success: true,
-        //         output: stdout.trim()
-        //     });
-        // });
-
-        // // Gửi input vào chương trình
-        // if (input) {
-        //     process.stdin.write(input);
-        // }
-
-        // process.stdin.end();
-    
          let output = "";
         let errorOutput = "";
+
+        //
+        const startTime = Date.now();
 
         // Nhận stdout
         child.stdout.on("data", (data) => {
@@ -104,17 +71,55 @@ export function runCpp(input, timeout = 2000) {
 
         // Khi chương trình kết thúc
         child.on("close", (code) => {
-            if (code !== 0) {
-                resolve({
-                    success: false,
-                    error: errorOutput || `Exit code ${code}`
-                });
-            } else {
-                resolve({
-                    success: true,
-                    output: output.trim()
+            const elapsed = Date.now() - startTime;
+            if (elapsed >= timeLimit) {
+                return resolve({
+                    status: "TLE",
+                    stdout: "",
+                    stderr: "Time Limit Exceeded",
+                    time: elapsed,
+                    memory: memoryLimit
                 });
             }
+
+            if (errorOutput.includes("Cannot allocate memory")) {
+                return resolve({
+                    status: "MLE",
+                    stdout: "",
+                    stderr: "Memory Limit Exceeded",
+                    time: elapsed,
+                    memory: memoryLimit
+                });
+            }
+
+            if (code !== 0) {
+                return resolve({
+                    status: "RTE",
+                    stdout: "",
+                    stderr: errorOutput || `Exit code ${code}`,
+                    time: elapsed,
+                    memory: memoryLimit
+                });
+            }
+
+            resolve({
+                status: "OK",
+                stdout: output.trim(),
+                stderr: "",
+                time: elapsed,
+                memory: memoryLimit
+            });
+            // if (code !== 0) {
+            //     resolve({
+            //         success: false,
+            //         error: errorOutput || `Exit code ${code}`
+            //     });
+            // } else {
+            //     resolve({
+            //         success: true,
+            //         output: output.trim()
+            //     });
+            // }
         });
 
         // Gửi input vào stdin
@@ -128,30 +133,21 @@ export function runCpp(input, timeout = 2000) {
             if (!child.killed) {
                 child.kill();
                 resolve({
-                    success: false,
-                    error: "Time Limit Exceeded"
+                    status: "TLE",
+                    stdout: "",
+                    stderr: "Time Limit Exceeded",
+                    time: timeLimit,
+                    memory: memoryLimit
                 });
+                // resolve({
+                //     success: false,
+                //     error: "Time Limit Exceeded"
+                // });
             }
-        }, timeout);
+        }, timeLimit);
     
     });
 
 }
 
 
-// async function runAllTestCases(testcases) {
-//     let results = [];
-
-//     for (let tc of testcases) {
-//         const r = await runCpp(tc.input);
-
-//         results.push({
-//             input: tc.input,
-//             expected: tc.output,
-//             actual: r.output || r.error,
-//             pass: r.success && r.output == tc.output
-//         });
-//     }
-
-//     return results;
-// }
