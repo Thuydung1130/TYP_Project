@@ -4,7 +4,7 @@ import { saveCodeToFile, compileCpp, runCpp } from "../../../sandbox/runner.js";
 // GET /problem
 export const index = async (req, res) => {
   try {
-    const problems = await Problem.find().select("title description");
+    const problems = await Problem.find().select("title description difficulty");
     res.json(problems);
   } catch (err) {
     res.status(500).json({ error: err.message });

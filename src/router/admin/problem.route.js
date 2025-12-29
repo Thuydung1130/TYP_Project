@@ -11,6 +11,6 @@ router.get("/",controller.index);
 router.get("/:id", controller.getProblem);
 router.post("/", controller.createProblem);
 router.put("/:id", controller.updateProblem);
-
+router.delete("/:id",controller.deleteProblem)
 
 export default router
