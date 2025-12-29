@@ -1,6 +1,6 @@
-import Problem from "../model/problem.model.js";
-import Testcase from "../model/testcase.model.js";
-import { saveCodeToFile, compileCpp, runCpp } from "../../sandbox/runner.js";
+import Problem from "../../model/problem.model.js";
+import Testcase from "../../model/testcase.model.js";
+import { saveCodeToFile, compileCpp, runCpp } from "../../../sandbox/runner.js";
 // GET /problem
 export const index = async (req, res) => {
   try {
