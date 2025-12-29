@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { compileCpp } from "../../sandbox/runner.js";
+import { compileCpp } from "../../../sandbox/runner.js";
 
-import upload from "../middlewares/upload.js";
+import upload from "../../middlewares/upload.js";
 const router = Router();
-import *as controller from "../controllers/problem.controller.js"
+import *as controller from "../../controllers/client/problem.controller.js"
 
 router.get("/",controller.index);
 router.get("/:id", controller.getProblem);
