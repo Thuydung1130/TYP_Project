@@ -18,12 +18,14 @@ import *as database from "./src/config/database.js"
 database.connect();
 
 //route
-import route from "./src/router/index.route.js"
+import routeClient from "./src/router/client/index.route.js"
+import routeAdmin from "./src/router/admin/index.route.js"
 
 
 // chạy server
 
-route(app);
+routeClient(app);
+routeAdmin(app);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server đang chạy ở port ${PORT}`);
