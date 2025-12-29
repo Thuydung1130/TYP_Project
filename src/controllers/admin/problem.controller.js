@@ -5,7 +5,7 @@ import Testcase from "../../model/testcase.model.js";
 // GET /problem
 export const index = async (req, res) => {
   try {
-    const problems = await Problem.find().select("title description");
+    const problems = await Problem.find().select("title description timeLimit memoryLimit difficulty");
     res.json(problems);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -19,7 +19,7 @@ export const getProblem = async (req, res) => {
     //console.log("hihih")
     const problems = await Problem.findOne({
       _id: id
-    }).select("title description");
+    }).select("title description timeLimit memoryLimit difficulty");
     res.json(problems);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -78,19 +78,15 @@ export const createProblem = async (req, res) => {
 export const updateProblem = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, timeLimit, memoryLimit } = req.body;
+     const {
+      title,
+      description,
+      difficulty,
+      timeLimit,
+      memoryLimit
+    } = req.body;
 
-    // validate bắt buộc
-    if (
-      !title ||
-      !description ||
-      timeLimit === undefined ||
-      memoryLimit === undefined
-    ) {
-      return res.status(400).json({
-        message: "Thiếu dữ liệu: title, description, timeLimit, memoryLimit"
-      });
-    }
+
 
     if (timeLimit <= 0 || memoryLimit <= 0) {
       return res.status(400).json({
@@ -103,6 +99,7 @@ export const updateProblem = async (req, res) => {
       {
         title,
         description,
+        difficulty,
         timeLimit,
         memoryLimit
       },
@@ -121,6 +118,34 @@ export const updateProblem = async (req, res) => {
     res.json({
       message: "Cập nhật bài thành công",
       data: problem
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+/**
+ * DELETE /problem/:id
+ * Xoá bài + testcase liên quan
+ */
+export const deleteProblem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const problem = await Problem.findByIdAndDelete(id);
+
+    if (!problem) {
+      return res.status(404).json({
+        message: "Không tìm thấy bài"
+      });
+    }
+
+    // xoá toàn bộ testcase của bài
+    await Testcase.deleteMany({ problem_id: id });
+
+    res.json({
+      message: "Xoá bài và testcase thành công"
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
