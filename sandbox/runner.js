@@ -104,7 +104,7 @@ export function runCpp(input, timeLimit , memoryLimit ) {
 
             resolve({
                 status: "OK",
-                stdout: output.trim(),
+                stdout: output.replace(/\r\n/g, "\n").trim(),
                 stderr: "",
                 time: elapsed,
                 memory: memoryLimit

@@ -124,7 +124,7 @@ export const submitCode = async (req, res) => {
       // Nếu gặp lỗi nặng → dừng sớm
       if (["TLE", "MLE", "RE"].includes(caseStatus)) break;
     }
-
+    console.log(results);
     // 5. Trả kết quả cuối
     return res.json({
       status: finalStatus,
