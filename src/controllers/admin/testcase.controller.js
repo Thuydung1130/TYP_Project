@@ -14,7 +14,7 @@ export const getTestCases = async (req, res) => {
     const filter = problem_id ? { problem_id } : {};
 
     const testcases = await Testcase.find(filter).sort({ _id: 1 });
-
+    console.log(testcases);
     res.json({
       data: testcases
     });
